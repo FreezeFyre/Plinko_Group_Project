@@ -10,49 +10,56 @@
 #include <unordered_map>
 
 
+
+// Declare Ball Parameters
 struct ball_paramaters {
-    int id;
-    std::vector<float> pos;
-    std::vector<float> velocity;
-    int mass;
-    float bounce_damp;
+    int id; // Incase Multiple Balls
+    std::vector<float> pos; // Balls current x,y
+    std::vector<float> velocity; // Balls current velocity vector x,y
+    float bounce_damp; // Energy loss onn bounce, 1 = no loss, 0 = total loss
 };
+// Set Paramaters for the ball and bind to "ball" name
+ball_paramaters ball = {0,{0,10},{1,0},0.8};
 
-ball_paramaters ball = {0,{0,10},{1,0},0,0.8};
 
+
+// Declare Globale Paramaters
 struct global_paramaters {
-    float gravity;
-    float air_damping;
-    int substeps;
-    int loop_thresh;
+    float gravity; // Gravity Force, "-" = down
+    float air_damping; // Energy loss every sample, 1 = no loss, 0 = total loss
+    int substeps; // Unused
+    int loop_thresh; // Max Amount of allowed samples
 };
-
+// Set Global Paramaters and bind to "global" name
 global_paramaters global = {-.098,.99,4,100};
 
 
 
 void floor_collision(int floor_height) {
+    // Detect Collision with floor
     if (ball.pos[1] < floor_height) {
-        ball.pos[1] = floor_height;
-        ball.velocity[1] *= -1;
-        ball.velocity[0] *= ball.bounce_damp;
-        ball.velocity[1] *= ball.bounce_damp;
+        ball.velocity[1] *= -1; // Reflect Vertically
+        ball.velocity[0] *= ball.bounce_damp; // Dampening
+        ball.velocity[1] *= ball.bounce_damp; // Dampening
     }
 }
 
 
-
+// Wall Collisions
 void wall_collision(int left, int right) {
+    
+    // Detect Collision with left wall
     if (ball.pos[0] < left) {
-        ball.velocity[0] *= -1;
-        ball.velocity[0] *= ball.bounce_damp;
-        ball.velocity[1] *= ball.bounce_damp;
+        ball.velocity[0] *= -1; // Reflect Horizontaly
+        ball.velocity[0] *= ball.bounce_damp; // Dampening
+        ball.velocity[1] *= ball.bounce_damp; // Dampening
     }
     
+    // Detect Collision with right
     else if (ball.pos[0] > right){
-        ball.velocity[0] *= -1;
-        ball.velocity[0] *= ball.bounce_damp;
-        ball.velocity[1] *= ball.bounce_damp;
+        ball.velocity[0] *= -1; // Reflect Horizontaly
+        ball.velocity[0] *= ball.bounce_damp; // Dampening
+        ball.velocity[1] *= ball.bounce_damp; // Dampening
     }
 }
 
