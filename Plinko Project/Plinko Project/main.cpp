@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <cmath>
 
 
 
@@ -17,9 +18,10 @@ struct ball_paramaters {
     std::vector<float> pos; // Balls current x,y
     std::vector<float> velocity; // Balls current velocity vector x,y
     float bounce_damp; // Energy loss onn bounce, 1 = no loss, 0 = total loss
+    float rad;
 };
 // Set Paramaters for the ball and bind to "ball" name
-ball_paramaters ball = {0,{0,10},{1,0},0.8};
+ball_paramaters ball = {0,{0,10},{0,0},0.8,.5};
 
 
 
@@ -32,6 +34,30 @@ struct global_paramaters {
 };
 // Set Global Paramaters and bind to "global" name
 global_paramaters global = {-.098,.99,4,100};
+
+
+
+struct pin_paramaters {
+    int id;
+    std::vector<float> pos;
+    float rad;
+};
+
+
+
+std::unordered_map<int, pin_paramaters> pin;
+void initialize_pins() {
+    pin[0] = {0,{0,0},0};
+    pin[1] = {0,{0,0},0};
+    pin[2] = {0,{0,0},0};
+    pin[3] = {0,{0,0},0};
+    pin[4] = {0,{0,0},0};
+    pin[5] = {0,{0,0},0};
+    pin[6] = {0,{0,0},0};
+    pin[7] = {0,{0,0},0};
+    pin[8] = {0,{0,0},0};
+    pin[9] = {0,{0,0},0};
+}
 
 
 
@@ -85,11 +111,11 @@ void sim_operations() {
 
 int main() {
 
-
+    initialize_pins();
     
     int count = 0;
     while (count <= global.loop_thresh-1) {
-        std::cout << count << "\t | \t";
+        std::cout << "\t | \t";
         std::cout << "Position: (" << ball.pos[0] << ", " << ball.pos[1] << ") " << "Velocity: (" << ball.velocity[0] << ", " << ball.velocity[1] << ")" << std::endl;
 
         sim_operations();
