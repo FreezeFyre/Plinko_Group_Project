@@ -21,7 +21,7 @@ struct ball_paramaters {
     float rad;
 };
 // Set Paramaters for the ball and bind to "ball" name
-ball_paramaters ball = {0,{0,10},{0,0},0.8,.5};
+ball_paramaters ball = {0,{0,10},{0,0},1,0.5};
 
 
 
@@ -33,7 +33,7 @@ struct global_paramaters {
     int loop_thresh; // Max Amount of allowed samples
 };
 // Set Global Paramaters and bind to "global" name
-global_paramaters global = {-.098,.99,4,100};
+global_paramaters global = {-.98,.99,4,100};
 
 
 
@@ -47,16 +47,31 @@ struct pin_paramaters {
 
 std::unordered_map<int, pin_paramaters> pin;
 void initialize_pins() {
-    pin[0] = {0,{0,0},0};
-    pin[1] = {0,{0,0},0};
-    pin[2] = {0,{0,0},0};
-    pin[3] = {0,{0,0},0};
-    pin[4] = {0,{0,0},0};
-    pin[5] = {0,{0,0},0};
-    pin[6] = {0,{0,0},0};
-    pin[7] = {0,{0,0},0};
-    pin[8] = {0,{0,0},0};
-    pin[9] = {0,{0,0},0};
+    pin[0] = {0,{0,2},0.5};
+    pin[1] = {1,{-4,0},0.5};
+    pin[2] = {2,{-3,0},0.5};
+    pin[3] = {3,{-2,0},0.5};
+    pin[4] = {4,{-1,0},0.5};
+    pin[5] = {5,{0,0},0.5};
+    pin[6] = {6,{1,0},0.5};
+    pin[7] = {7,{2,0},0.5};
+    pin[8] = {8,{3,0},0.5};
+    pin[9] = {9,{4,0},0.5};
+}
+
+
+
+void pin_solver() {
+    int i = 0;
+    while (i < pin.size()) {
+        float d = sqrt((pow((ball.pos[0]-pin[i].pos[0]), 2)) + (pow((ball.pos[1] - pin[i].pos[1]), 2)));
+        
+        if (d < pin[i].rad + ball.rad) {
+            std::cout << "X";
+        }
+        
+        i += 1;
+    }
 }
 
 
@@ -65,6 +80,7 @@ void floor_collision(int floor_height) {
     // Detect Collision with floor
     if (ball.pos[1] < floor_height) {
         ball.velocity[1] *= -1; // Reflect Vertically
+        ball.pos[1] = floor_height + .01;
         ball.velocity[0] *= ball.bounce_damp; // Dampening
         ball.velocity[1] *= ball.bounce_damp; // Dampening
     }
@@ -118,6 +134,7 @@ int main() {
         std::cout << "\t | \t";
         std::cout << "Position: (" << ball.pos[0] << ", " << ball.pos[1] << ") " << "Velocity: (" << ball.velocity[0] << ", " << ball.velocity[1] << ")" << std::endl;
 
+        pin_solver();
         sim_operations();
 
         count += 1;
