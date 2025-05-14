@@ -21,7 +21,7 @@ struct ball_paramaters {
     float rad;
 };
 // Set Paramaters for the ball and bind to "ball" name
-ball_paramaters ball = {0,{0,10},{0,0},1,0.5};
+ball_paramaters ball = {0,{0,10},{.05,0},.8,0.5};
 
 
 
@@ -48,15 +48,6 @@ struct pin_paramaters {
 std::unordered_map<int, pin_paramaters> pin;
 void initialize_pins() {
     pin[0] = {0,{0,2},0.5};
-    pin[1] = {1,{-4,0},0.5};
-    pin[2] = {2,{-3,0},0.5};
-    pin[3] = {3,{-2,0},0.5};
-    pin[4] = {4,{-1,0},0.5};
-    pin[5] = {5,{0,0},0.5};
-    pin[6] = {6,{1,0},0.5};
-    pin[7] = {7,{2,0},0.5};
-    pin[8] = {8,{3,0},0.5};
-    pin[9] = {9,{4,0},0.5};
 }
 
 
@@ -69,16 +60,20 @@ void pin_solver() {
         if (d < pin[i].rad + ball.rad) { // Detect If Ball Collides With Pin i
             std::cout << "X"; // Visulize Collision Detection
             
-            float x_direction = ball.pos[0] - pin[i].pos[0]; // Calculate the Vector Pointing From the Pin to the Ball
-            float y_direction = ball.pos[1] - pin[i].pos[1]; // Calculate the Vector Pointing From the Pin to the Ball
+            float x_direction = ball.pos[0] - pin[i].pos[0]; // Vector Pointing From the Pin to the Ball
+            float y_direction = ball.pos[1] - pin[i].pos[1]; // Vector Pointing From the Pin to the Ball
             
             float normal_x = x_direction / d; // Normalize the Direction Vector
             float normal_y = y_direction / d; // Normalize the Direction Vector
-            
-            float dot = ball.velocity[0]*normal_x + ball.velocity[1]*normal_y; // Dot Product
+                        
+            float dot = ball.velocity[0]*(normal_x * -1) + ball.velocity[1]*(normal_y * -1); // Dot Product
 
             ball.velocity[0] = ball.velocity[0] - 2 * dot * normal_x; // Reflection Velocity
             ball.velocity[1] = ball.velocity[1] - 2 * dot * normal_y; // Reflection Velocity
+            
+            
+            ball.pos[0] = pin[i].pos[0] + x_direction;
+            ball.pos[1] = pin[i].pos[1] + y_direction;
             
             ball.velocity[0] *= ball.bounce_damp; // Dampening
             ball.velocity[1] *= ball.bounce_damp; // Dampening
@@ -90,11 +85,19 @@ void pin_solver() {
 
 
 
-void floor_collision(int floor_height) {
+void floor_ceil_collision(int floor_height, int ceil_height) {
     // Detect Collision with floor
     if (ball.pos[1] < floor_height) {
         ball.velocity[1] *= -1; // Reflect Vertically
         ball.pos[1] = floor_height + .01;
+        ball.velocity[0] *= ball.bounce_damp; // Dampening
+        ball.velocity[1] *= ball.bounce_damp; // Dampening
+    }
+    
+    
+    else if (ball.pos[1] > ceil_height) {
+        ball.velocity[1] *= -1; // Reflect Vertically
+        ball.pos[1] = ceil_height + .01;
         ball.velocity[0] *= ball.bounce_damp; // Dampening
         ball.velocity[1] *= ball.bounce_damp; // Dampening
     }
@@ -132,7 +135,7 @@ void sim_operations() {
     
     
     
-    floor_collision(0);
+    floor_ceil_collision(0, 15);
     
     wall_collision(-10, 10);
     
