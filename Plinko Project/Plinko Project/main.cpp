@@ -63,11 +63,25 @@ void initialize_pins() {
 
 void pin_solver() {
     int i = 0;
-    while (i < pin.size()) {
-        float d = sqrt((pow((ball.pos[0]-pin[i].pos[0]), 2)) + (pow((ball.pos[1] - pin[i].pos[1]), 2)));
+    while (i < pin.size()) { // Loop Through Each Pin
+        float d = sqrt((pow((ball.pos[0]-pin[i].pos[0]), 2)) + (pow((ball.pos[1] - pin[i].pos[1]), 2))); // Find Distance Between Pin i and the Ball
         
-        if (d < pin[i].rad + ball.rad) {
-            std::cout << "X";
+        if (d < pin[i].rad + ball.rad) { // Detect If Ball Collides With Pin i
+            std::cout << "X"; // Visulize Collision Detection
+            
+            float x_direction = ball.pos[0] - pin[i].pos[0]; // Calculate the Vector Pointing From the Pin to the Ball
+            float y_direction = ball.pos[1] - pin[i].pos[1]; // Calculate the Vector Pointing From the Pin to the Ball
+            
+            float normal_x = x_direction / d; // Normalize the Direction Vector
+            float normal_y = y_direction / d; // Normalize the Direction Vector
+            
+            float dot = ball.velocity[0]*normal_x + ball.velocity[1]*normal_y; // Dot Product
+
+            ball.velocity[0] = ball.velocity[0] - 2 * dot * normal_x; // Reflection Velocity
+            ball.velocity[1] = ball.velocity[1] - 2 * dot * normal_y; // Reflection Velocity
+            
+            ball.velocity[0] *= ball.bounce_damp; // Dampening
+            ball.velocity[1] *= ball.bounce_damp; // Dampening
         }
         
         i += 1;
@@ -121,6 +135,8 @@ void sim_operations() {
     floor_collision(0);
     
     wall_collision(-10, 10);
+    
+    pin_solver();
 }
 
 
@@ -134,7 +150,6 @@ int main() {
         std::cout << "\t | \t";
         std::cout << "Position: (" << ball.pos[0] << ", " << ball.pos[1] << ") " << "Velocity: (" << ball.velocity[0] << ", " << ball.velocity[1] << ")" << std::endl;
 
-        pin_solver();
         sim_operations();
 
         count += 1;
