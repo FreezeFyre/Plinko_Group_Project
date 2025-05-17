@@ -21,7 +21,7 @@ struct ball_paramaters {
     float rad;
 };
 // Set Paramaters for the ball and bind to "ball" name
-ball_paramaters ball = {0,{0,10},{.05,0},.8,0.5};
+ball_paramaters ball = {0,{0,10},{0.05,0},.8,0.5};
 
 
 
@@ -38,7 +38,6 @@ global_paramaters global = {-.98,.99,4,100};
 
 
 struct pin_paramaters {
-    int id;
     std::vector<float> pos;
     float rad;
 };
@@ -47,7 +46,9 @@ struct pin_paramaters {
 
 std::unordered_map<int, pin_paramaters> pin;
 void initialize_pins() {
-    pin[0] = {0,{0,2},0.5};
+    pin[0] = {{0,4},0.5};
+    pin[1] = {{2,2},0.5};
+    pin[2] = {{-2,2},0.5};
 }
 
 
@@ -145,7 +146,6 @@ void sim_operations() {
 
 
 int main() {
-
     initialize_pins();
     
     int count = 0;
