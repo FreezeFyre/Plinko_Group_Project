@@ -9,42 +9,53 @@
 #include <vector>
 #include <unordered_map>
 #include <cmath>
+#include <cstdlib> // for system()
+
+
+std::vector<int> aspect_ratio = {16,9};
+int window_width = 1920;
+int window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
+
+float sim_width = 100;
+float sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1]);
 
 
 
 // Declare Ball Parameters
-struct ball_paramaters {
-    int id; // Incase Multiple Balls
+struct ball_parameters {
     std::vector<float> pos; // Balls current x,y
     std::vector<float> velocity; // Balls current velocity vector x,y
-    float bounce_damp; // Energy loss onn bounce, 1 = no loss, 0 = total loss
+    float bounce_damp; // Energy loss on bounce, 1 = no loss, 0 = total loss
     float rad;
 };
-// Set Paramaters for the ball and bind to "ball" name
-ball_paramaters ball = {0,{0,10},{0.05,0},.8,0.5};
+// Set parameters for the ball and bind to "ball" name
+ball_parameters ball = {{sim_width/2,sim_height},{0.05,0},.8,0.5};
 
+std::unordered_map<int, ball_parameters> balls;
+void initialize_balls() {
+    balls[0] = {{0,0},{0,0},1,.5};
+}
 
-
-// Declare Globale Paramaters
-struct global_paramaters {
+// Declare Globale parameters
+struct global_parameters {
     float gravity; // Gravity Force, "-" = down
     float air_damping; // Energy loss every sample, 1 = no loss, 0 = total loss
     int substeps; // Unused
     int loop_thresh; // Max Amount of allowed samples
 };
-// Set Global Paramaters and bind to "global" name
-global_paramaters global = {-.98,.99,4,100};
+// Set Global parameters and bind to "global" name
+global_parameters global = {-9.8,.99,4,100};
 
 
 
-struct pin_paramaters {
+struct pin_parameters {
     std::vector<float> pos;
     float rad;
 };
 
 
 
-std::unordered_map<int, pin_paramaters> pin;
+std::unordered_map<int, pin_parameters> pin;
 void initialize_pins() {
     pin[0] = {{0,4},0.5};
     pin[1] = {{2,2},0.5};
@@ -125,7 +136,7 @@ void wall_collision(int left, int right) {
 
 
 
-void sim_operations() {
+std::vector<float> sim_operations() {
     ball.velocity[0] *= global.air_damping;
     ball.velocity[1] *= global.air_damping;
 
@@ -136,11 +147,14 @@ void sim_operations() {
     
     
     
-    floor_ceil_collision(0, 15);
+    floor_ceil_collision(0, sim_height);
     
-    wall_collision(-10, 10);
+    wall_collision(0, sim_width);
     
     pin_solver();
+    std::vector<float> output = {((ball.pos[0]/sim_width)*window_width),((ball.pos[1]/sim_height)*window_height)};
+    
+    return output;
 }
 
 
@@ -150,10 +164,11 @@ int main() {
     
     int count = 0;
     while (count <= global.loop_thresh-1) {
+        std::vector<float> screen_pos = sim_operations();
         std::cout << "\t | \t";
-        std::cout << "Position: (" << ball.pos[0] << ", " << ball.pos[1] << ") " << "Velocity: (" << ball.velocity[0] << ", " << ball.velocity[1] << ")" << std::endl;
+        std::cout << "Position: (" << screen_pos[0] << ", " << screen_pos[1] << ") "
+                  << "Velocity: (" << ball.velocity[0] << ", " << ball.velocity[1] << ")" << std::endl;
 
-        sim_operations();
 
         count += 1;
     }

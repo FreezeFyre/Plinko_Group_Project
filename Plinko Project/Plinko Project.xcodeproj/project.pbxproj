@@ -23,6 +23,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		7036185E2DDD156B00F019D1 /* Script.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = Script.sh; sourceTree = "<group>"; };
 		70FEEEEC2DCD3C9E001CBC6C /* Plink Project */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Plink Project"; sourceTree = BUILT_PRODUCTS_DIR; };
 		70FEEEEF2DCD3C9E001CBC6C /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		70FEEEF62DCD3CCD001CBC6C /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
@@ -60,6 +61,7 @@
 			children = (
 				70FEEEEF2DCD3C9E001CBC6C /* main.cpp */,
 				70FEEEF62DCD3CCD001CBC6C /* main.py */,
+				7036185E2DDD156B00F019D1 /* Script.sh */,
 			);
 			path = "Plinko Project";
 			sourceTree = "<group>";
