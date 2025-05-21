@@ -31,7 +31,7 @@ struct ball_parameters {
 // Set parameters for the ball and bind to "ball" name
 std::unordered_map<int, ball_parameters> ball;
 void initialize_balls() {
-    ball[0] = {{0,0},{0,0},1,.5};
+    ball[0] = {{50,sim_height},{0,0},1,.5};
 }
 
 
@@ -79,8 +79,9 @@ void pin_collisions() {
                 ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y; // Reflection Velocity
                 
                 
-                ball[n].pos[0] = pin[i].pos[0] + x_direction;
-                ball[n].pos[1] = pin[i].pos[1] + y_direction;
+                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin[i].rad + ball[n].rad + 0.01);
+                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin[i].rad + ball[n].rad + 0.01);
+                
                 
                 ball[n].velocity[0] *= ball[n].bounce_damp; // Dampening
                 ball[n].velocity[1] *= ball[n].bounce_damp; // Dampening
@@ -101,7 +102,7 @@ void floor_ceil_collision(int floor_height, int ceil_height) {
         // Detect Collision with floor
         if (ball[n].pos[1] < floor_height) {
             ball[n].velocity[1] *= -1; // Reflect Vertically
-            ball[n].pos[1] = floor_height + .01;
+            ball[n].pos[1] = floor_height + ball[n].rad + 0.01;
             ball[n].velocity[0] *= ball[n].bounce_damp; // Dampening
             ball[n].velocity[1] *= ball[n].bounce_damp; // Dampening
         }
@@ -109,7 +110,7 @@ void floor_ceil_collision(int floor_height, int ceil_height) {
         
         else if (ball[n].pos[1] > ceil_height) {
             ball[n].velocity[1] *= -1; // Reflect Vertically
-            ball[n].pos[1] = ceil_height + .01;
+            ball[n].pos[1] = ceil_height - ball[n].rad - 0.01;
             ball[n].velocity[0] *= ball[n].bounce_damp; // Dampening
             ball[n].velocity[1] *= ball[n].bounce_damp; // Dampening
         }
@@ -174,20 +175,20 @@ std::vector<float> sim_operations() {
 
 int main() {
     initialize_pins();
+    initialize_balls();
     
     int count = 0;
-    while (count <= loop_thresh-1) {
-        int n = 0;
-        while (n < ball.size()) {
-            std::vector<float> screen_pos = sim_operations();
-            std::cout << "\t | \t";
-            std::cout << "Position: (" << screen_pos[0] << ", " << screen_pos[1] << ") "
-                      << "Velocity: (" << ball[n].velocity[0] << ", " << ball[n].velocity[1] << ")" << std::endl;
+    while (count <= loop_thresh - 1) {
+        std::vector<float> screen_pos = sim_operations();  // Call once per frame
 
-            n += 1;
+        for (int n = 0; n < ball.size(); ++n) {
+            std::cout << "\t | \t";
+            std::cout << "Position: (" << screen_pos[n * 2] << ", " << screen_pos[n * 2 + 1] << ") "
+                      << "Velocity: (" << ball[n].velocity[0] << ", " << ball[n].velocity[1] << ")" << std::endl;
         }
-        count += 1;
+        ++count;
     }
+
         
     return 0;
 }
