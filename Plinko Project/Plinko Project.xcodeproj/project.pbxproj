@@ -24,12 +24,20 @@
 
 /* Begin PBXFileReference section */
 		7036185E2DDD156B00F019D1 /* Script.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = Script.sh; sourceTree = "<group>"; };
+		70F44E412DDFC66C00DA79C8 /* PlinkoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlinkoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		70FEEEEC2DCD3C9E001CBC6C /* Plink Project */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Plink Project"; sourceTree = BUILT_PRODUCTS_DIR; };
 		70FEEEEF2DCD3C9E001CBC6C /* main.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		70FEEEF62DCD3CCD001CBC6C /* main.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = main.py; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		70F44E3E2DDFC66C00DA79C8 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		70FEEEE92DCD3C9E001CBC6C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -52,6 +60,7 @@
 			isa = PBXGroup;
 			children = (
 				70FEEEEC2DCD3C9E001CBC6C /* Plink Project */,
+				70F44E412DDFC66C00DA79C8 /* PlinkoTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -69,6 +78,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		70F44E402DDFC66C00DA79C8 /* PlinkoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 70F44E472DDFC66C00DA79C8 /* Build configuration list for PBXNativeTarget "PlinkoTests" */;
+			buildPhases = (
+				70F44E3D2DDFC66C00DA79C8 /* Sources */,
+				70F44E3E2DDFC66C00DA79C8 /* Frameworks */,
+				70F44E3F2DDFC66C00DA79C8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PlinkoTests;
+			productName = PlinkoTests;
+			productReference = 70F44E412DDFC66C00DA79C8 /* PlinkoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		70FEEEEB2DCD3C9E001CBC6C /* Plink Project */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 70FEEEF32DCD3C9E001CBC6C /* Build configuration list for PBXNativeTarget "Plink Project" */;
@@ -93,8 +119,12 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1520;
 				LastUpgradeCheck = 1520;
 				TargetAttributes = {
+					70F44E402DDFC66C00DA79C8 = {
+						CreatedOnToolsVersion = 15.2;
+					};
 					70FEEEEB2DCD3C9E001CBC6C = {
 						CreatedOnToolsVersion = 15.2;
 					};
@@ -114,11 +144,29 @@
 			projectRoot = "";
 			targets = (
 				70FEEEEB2DCD3C9E001CBC6C /* Plink Project */,
+				70F44E402DDFC66C00DA79C8 /* PlinkoTests */,
 			);
 		};
 /* End PBXProject section */
 
+/* Begin PBXResourcesBuildPhase section */
+		70F44E3F2DDFC66C00DA79C8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin PBXSourcesBuildPhase section */
+		70F44E3D2DDFC66C00DA79C8 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		70FEEEE82DCD3C9E001CBC6C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -130,6 +178,37 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin XCBuildConfiguration section */
+		70F44E452DDFC66C00DA79C8 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = group.PlinkoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		70F44E462DDFC66C00DA79C8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = group.PlinkoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
 		70FEEEF12DCD3C9E001CBC6C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -266,6 +345,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		70F44E472DDFC66C00DA79C8 /* Build configuration list for PBXNativeTarget "PlinkoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				70F44E452DDFC66C00DA79C8 /* Debug */,
+				70F44E462DDFC66C00DA79C8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		70FEEEE72DCD3C9D001CBC6C /* Build configuration list for PBXProject "Plinko Project" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
