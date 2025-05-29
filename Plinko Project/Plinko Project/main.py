@@ -13,7 +13,7 @@ window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
 sim_width = 100; ## In Meters
 sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1]);
 
-pin_radius = 1; ## Meters
+pin_radius = 5; ## Meters
 
 max_velocity = 300.0;
 
@@ -47,13 +47,19 @@ pin: List[PinParameters] = []
 # Ball Creation Logic Goes In Here
 # Initialize Balls
 def initialize_balls():
-    ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],True))
+    ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],False))
 
 
 # Pin Creation Logic Goes Here
 # Initialize Pins
 def initialize_pins():
-    pin.append(PinParameters([50 , 50],[0.0,0.0]))
+    pin.append(PinParameters([20 , 70],[0.0,0.0]));
+    pin.append(PinParameters([40 , 60],[0.0,0.0]));
+    pin.append(PinParameters([60 , 50],[0.0,0.0]));
+    pin.append(PinParameters([80 , 40],[0.0,0.0]));
+    pin.append(PinParameters([30 , 30],[0.0,0.0]));
+    pin.append(PinParameters([50 , 20],[0.0,0.0]));
+    pin.append(PinParameters([70 , 10],[0.0,0.0]));
 
 
 
@@ -104,7 +110,7 @@ def floor_ceil_collision(floor_height,ceil_height):
 
         elif (ball[n].pos[1] > ceil_height):
             ball[n].velocity[1] *= -1;
-            ball[n].pos[1] = ceil_height - ball_radius + 0.01;
+            ball[n].pos[1] = ceil_height - ball_radius - 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
@@ -117,11 +123,13 @@ def wall_collisions(left,right):
             continue
         if (ball[n].pos[0] < left):
             ball[n].velocity[0] *= -1;
+            ball[n].pos[0] = left + ball_radius + 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
         elif (ball[n].pos[0] > right):
             ball[n].velocity[0] *= -1;
+            ball[n].pos[0] = right - ball_radius - 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
@@ -152,23 +160,29 @@ def global_simulations():
 # Updates the Screen Pos of Each Ball
 def sim_to_window():
     for n in range(len(ball)):
+        if not ball[n].active:
+            continue
         ball[n].window_pos[0] = (ball[n].pos[0] / sim_width) * window_width
         ball[n].window_pos[1] = window_height - ((ball[n].pos[1] / sim_height) * window_height)
 
 
 
 # Simulation Loop
-def simulation_loop(running): ## If the app is runnning updates every ball position and velocity every "sample_rate" of a second
-    while running(): ## Execute Every "sample_rate" of a second
+def simulation_loop(running):
+    while running():
         start_time = time.time()
 
-        sim_to_window() ## Update the Screen Position Array For each pin and ball
-        pin_window_pos() ## Update pin screen position
+        sim_to_window()
+        pin_window_pos()
 
-        global_simulations() ## Apply Gravity and Air damping to every ball
-        pin_collisions() ## Check if a ball collides with a pin if one does apply bouncing to it
+        global_simulations()
+        pin_collisions()
         floor_ceil_collision(0,sim_height)
         wall_collisions(0,sim_width)
+
+        for n in range(len(ball)):
+            if ball[n].active and ball[n].pos[1] <= 1:
+                ball[n].active = False
 
         elapsed = time.time() - start_time
         sleep_time = max(0, (1/sample_rate) - elapsed)
@@ -177,7 +191,7 @@ def simulation_loop(running): ## If the app is runnning updates every ball posit
 
 
 # Display Loop
-def display_loop(running): ## Creates a window, updates every frame, every frame calls pin and ball positions from array
+def display_loop(running):
     pygame.init()
     screen = pygame.display.set_mode((int(window_width), int(window_height)))
     clock = pygame.time.Clock()
