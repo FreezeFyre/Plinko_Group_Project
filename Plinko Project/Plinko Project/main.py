@@ -7,20 +7,21 @@ import threading
 
 
 aspect_ratio = [16,9];
-window_width = 720;
+window_width = 1920;
 window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
 
 sim_width = 100; ## In Meters
 sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1]);
 
-pin_radius = 5; ## Meters
+pin_radius = 1; ## Meters
 
 max_velocity = 300.0;
 
 sample_rate = 120; ## In Herz
 
-gravity = -9.8/sample_rate; ## In Meters
-air_damping = .9;
+dt = 1/sample_rate
+gravity = 9.8 * dt; ## In Meters
+air_damping = .999 ** dt;
 
 ball_radius = 1; ## In Meters
 bounce_damping = .85; # Range 0 to 1
@@ -80,8 +81,9 @@ def pin_collisions():
             d = math.sqrt((ball[n].pos[0] - pin[i].pos[0])**2 + (ball[n].pos[1] - pin[i].pos[1])**2)
 
             if d < (pin_radius + ball_radius):
-                x_direction = pin[i].pos[0] - ball[n].pos[0]
-                y_direction = pin[i].pos[1] - ball[n].pos[1]
+                x_direction = ball[n].pos[0] - pin[i].pos[0]
+                y_direction = ball[n].pos[1] - pin[i].pos[1]
+
                 normal_x = x_direction / d
                 normal_y = y_direction / d
                 dot = ball[n].velocity[0]*(normal_x) + ball[n].velocity[1]*(normal_y);
@@ -89,8 +91,8 @@ def pin_collisions():
                 ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x;
                 ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y;
 
-                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.01);
-                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.01);
+                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.0000000000000000001);
+                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.0000000000000000001);
 
                 ball[n].velocity[0] *= bounce_damping;
                 ball[n].velocity[1] *= bounce_damping;
@@ -103,10 +105,8 @@ def floor_ceil_collision(floor_height,ceil_height):
         if not ball[n].active:
             continue
         if (ball[n].pos[1] < floor_height):
-            ball[n].velocity[1] *= -1;
-            ball[n].pos[1] = floor_height + ball_radius + 0.01;
-            ball[n].velocity[0] *= bounce_damping;
-            ball[n].velocity[1] *= bounce_damping;
+            ball[n].active = False
+
 
         elif (ball[n].pos[1] > ceil_height):
             ball[n].velocity[1] *= -1;
@@ -143,7 +143,7 @@ def global_simulations():
         ball[n].velocity[0] *= air_damping;
         ball[n].velocity[1] *= air_damping;
 
-        ball[n].velocity[1] += gravity;
+        ball[n].velocity[1] -= gravity;
 
         speed = math.sqrt(ball[n].velocity[0]**2 + ball[n].velocity[1]**2)
         if speed > max_velocity:
@@ -179,10 +179,6 @@ def simulation_loop(running):
         pin_collisions()
         floor_ceil_collision(0,sim_height)
         wall_collisions(0,sim_width)
-
-        for n in range(len(ball)):
-            if ball[n].active and ball[n].pos[1] <= 1:
-                ball[n].active = False
 
         elapsed = time.time() - start_time
         sleep_time = max(0, (1/sample_rate) - elapsed)
