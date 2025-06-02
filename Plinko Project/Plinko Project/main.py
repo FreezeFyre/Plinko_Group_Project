@@ -27,6 +27,14 @@ ball_radius = 1; ## In Meters
 bounce_damping = .85; # Range 0 to 1
 
 
+
+goal_count = 10
+goal_width = sim_width/goal_count
+divider_color = (255, 255, 255)
+divider_width = 2 # Pixel
+goal_height = (sim_height/100) * 15 # Percent of Screen Height
+
+
 # Define Ball Parameters
 @dataclass
 class BallParameters:
@@ -156,6 +164,31 @@ def global_simulations():
 
 
 
+# Goal Collisions
+def goal_side_collisions():
+    for n in range(len(ball)):
+        if not ball[n].active:
+            continue
+        if ball[n].pos[1] > goal_height:
+            continue  # Only check when inside the goal zone
+
+        for i in range(1, goal_count):  # skip 0 to avoid left wall
+            divider_x = i * goal_width
+            dx = ball[n].pos[0] - divider_x
+            if abs(dx) < ball_radius:
+                # Collided with vertical divider
+                if dx < 0:
+                    ball[n].pos[0] = divider_x - ball_radius - 0.01
+                else:
+                    ball[n].pos[0] = divider_x + ball_radius + 0.01
+
+                ball[n].velocity[0] *= -1
+                ball[n].velocity[0] *= bounce_damping
+                ball[n].velocity[1] *= bounce_damping
+
+
+
+
 
 # Updates the Screen Pos of Each Ball
 def sim_to_window():
@@ -179,6 +212,7 @@ def simulation_loop(running):
         pin_collisions()
         floor_ceil_collision(0,sim_height)
         wall_collisions(0,sim_width)
+        goal_side_collisions()
 
         elapsed = time.time() - start_time
         sleep_time = max(0, (1/sample_rate) - elapsed)
@@ -215,6 +249,10 @@ def display_loop(running):
                 continue
             pygame.draw.circle(screen, (255, 0, 0), (int(b.window_pos[0]), int(b.window_pos[1])), int(ball_radius * window_width / sim_width))
 
+        for i in range(1, goal_count):
+            divider_x = (i * goal_width / sim_width) * window_width
+            pygame.draw.line(screen, divider_color, (divider_x, window_height), (divider_x, window_height - (goal_height / sim_height) * window_height), divider_width)
+
         pygame.display.flip()
         clock.tick(60)
 
@@ -223,6 +261,7 @@ def display_loop(running):
 
 initialize_pins()
 initialize_balls()
+sim_to_window()
 pin_window_pos()
 
 running_state = {"value": True}
