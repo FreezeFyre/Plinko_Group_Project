@@ -62,13 +62,24 @@ def initialize_balls():
 # Pin Creation Logic Goes Here
 # Initialize Pins
 def initialize_pins():
-    pin.append(PinParameters([20 , 70],[0.0,0.0]));
-    pin.append(PinParameters([40 , 60],[0.0,0.0]));
-    pin.append(PinParameters([60 , 50],[0.0,0.0]));
-    pin.append(PinParameters([80 , 40],[0.0,0.0]));
-    pin.append(PinParameters([30 , 30],[0.0,0.0]));
-    pin.append(PinParameters([50 , 20],[0.0,0.0]));
-    pin.append(PinParameters([70 , 10],[0.0,0.0]));
+    rows = 9
+    per_row = 14
+    width = sim_width
+    height = sim_height * 0.7
+    spacing = width / per_row
+    y_offset = sim_height * 0.2
+    for row in range(rows):
+        if row % 2 == 0:
+            for i in range(per_row + 1):
+                x = spacing * i
+                y = (height / rows) * row + y_offset
+                pin.append(PinParameters([x , y],[0.0,0.0]));
+        else:
+            for i in range(per_row):
+                x = spacing * (i + 1) - (spacing / 2)
+                y = (height / rows) * row + y_offset
+                pin.append(PinParameters([x , y],[0.0,0.0]));
+    print(f"Generated {rows} rows of pins, alternating {per_row} and {per_row + 1} per row. Total pins: {len(pin)}")
 
 
 
