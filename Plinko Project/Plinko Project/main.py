@@ -31,7 +31,7 @@ max_active_balls = 128;
 goal_count = 10
 goal_width = sim_width/goal_count
 divider_color = (255, 255, 255)
-divider_width = 2 # Pixel
+divider_width = 4 # Pixel
 goal_height = (sim_height/100) * 15 # Percent of Screen Height
 
 
