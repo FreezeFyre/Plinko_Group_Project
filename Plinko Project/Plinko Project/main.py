@@ -7,7 +7,7 @@ import threading
 
 
 aspect_ratio = [16,9];
-window_width = 1920;
+window_width = 1440;
 window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
 
 sim_width = 100; ## In Meters
@@ -20,11 +20,11 @@ max_velocity = 300.0;
 sample_rate = 120; ## In Herz
 
 dt = 1/sample_rate
-gravity = 9.8 * dt; ## In Meters
+gravity = 5 * dt; ## In Meters
 air_damping = .999 ** dt;
 
 ball_radius = 1; ## In Meters
-bounce_damping = .85; # Range 0 to 1
+bounce_damping = .9; # Range 0 to 1
 
 
 
@@ -237,7 +237,7 @@ def display_loop(running):
                 mouse_x, mouse_y = pygame.mouse.get_pos()
                 sim_x = (mouse_x / window_width) * sim_width
                 sim_y = ((window_height - mouse_y) / window_height) * sim_height
-                new_ball = BallParameters([sim_x, sim_y], [0.0, 0.0], [0.0, 0.0], True)
+                new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True)
                 new_ball.window_pos[0] = (sim_x / sim_width) * window_width
                 new_ball.window_pos[1] = window_height - ((sim_y / sim_height) * window_height)
                 ball.append(new_ball)
