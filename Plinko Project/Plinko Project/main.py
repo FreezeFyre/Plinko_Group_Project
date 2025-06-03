@@ -25,9 +25,6 @@ air_damping = .999 ** dt;
 
 ball_radius = 1; ## In Meters
 bounce_damping = .9; # Range 0 to 1
-ball_radius = .5;
-ball_radius = .5; ## In Meters
-bounce_damping = .85; # Range 0 to 1
 
 max_active_balls = 128;
 
@@ -35,7 +32,7 @@ goal_count = 10
 goal_width = sim_width/goal_count
 divider_color = (255, 255, 255)
 divider_width = 4 # Pixel
-goal_height = (sim_height/100) * 5 # Percent of Screen Height
+goal_height = (sim_height/100) * 15 # Percent of Screen Height
 
 
 rows = 9
@@ -69,7 +66,6 @@ class PinParameters:
     pos: List[float]
     window_pos: List[float]
 pin: List[PinParameters] = []
-
 
 
 # Ball Creation Logic Goes In Here
@@ -107,48 +103,42 @@ def pin_window_pos():
 # Detect and Calculate Balls Colliding with Pins
 def pin_collisions():
     for n in range(len(ball)):
+        if not ball[n].active:
+            continue
         for i in range(len(pin)):
-            # Distance Between  Pin And Ball
             d = math.sqrt((ball[n].pos[0] - pin[i].pos[0])**2 + (ball[n].pos[1] - pin[i].pos[1])**2)
 
             if d < (pin_radius + ball_radius):
+                x_direction = ball[n].pos[0] - pin[i].pos[0]
+                y_direction = ball[n].pos[1] - pin[i].pos[1]
 
-                # Find Vector Pointing From The Ball To The Pin
-                x_direction = pin[i].pos[0] - ball[n].pos[0]
-                y_direction = pin[i].pos[1] - ball[n].pos[1]
-
-                # Normalize Direction Vector (Make Length = 1 but still pointing same direction)
                 normal_x = x_direction / d
                 normal_y = y_direction / d
-
-                # Create Dot Product (Calculates How Aligned The Two Vectors Are(Tests For Perpindicular etc...))
                 dot = ball[n].velocity[0]*(normal_x) + ball[n].velocity[1]*(normal_y);
 
                 ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x;
                 ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y;
-                
-                # Perfect Elastic Bounce
-                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.01);
-                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.01);
-                
-                
-                ball[n].velocity[0] *= bounce_damping; # Apply Bounce Energy Absorption X
-                ball[n].velocity[1] *= bounce_damping; # Apply Bounce Energy Absorption Y
+
+                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.0000000000000000001);
+                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.0000000000000000001);
+
+                ball[n].velocity[0] *= bounce_damping;
+                ball[n].velocity[1] *= bounce_damping;
 
 
 
 # Detect and Calculate Balls Colliding with the Floor and Ceiling
 def floor_ceil_collision(floor_height,ceil_height):
     for n in range(len(ball)):
+        if not ball[n].active:
+            continue
         if (ball[n].pos[1] < floor_height):
-            ball[n].velocity[1] *= -1;
-            ball[n].pos[1] = floor_height +ball_radius + 0.01;
-            ball[n].velocity[0] *= bounce_damping;
-            ball[n].velocity[1] *= bounce_damping;
+            ball[n].active = False
+
 
         elif (ball[n].pos[1] > ceil_height):
             ball[n].velocity[1] *= -1;
-            ball[n].pos[1] = ceil_height - ball_radius + 0.01;
+            ball[n].pos[1] = ceil_height - ball_radius - 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
@@ -157,13 +147,17 @@ def floor_ceil_collision(floor_height,ceil_height):
 # Detect and Calculate Collisions with walls
 def wall_collisions(left,right):
     for n in range(len(ball)):
+        if not ball[n].active:
+            continue
         if (ball[n].pos[0] < left):
             ball[n].velocity[0] *= -1;
+            ball[n].pos[0] = left + ball_radius + 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
         elif (ball[n].pos[0] > right):
             ball[n].velocity[0] *= -1;
+            ball[n].pos[0] = right - ball_radius - 0.01;
             ball[n].velocity[0] *= bounce_damping;
             ball[n].velocity[1] *= bounce_damping;
 
@@ -172,16 +166,46 @@ def wall_collisions(left,right):
 # Apply Global Simulation Calculations
 def global_simulations():
     for n in range(len(ball)):
+        if not ball[n].active:
+            continue
         ball[n].velocity[0] *= air_damping;
         ball[n].velocity[1] *= air_damping;
 
-        ball[n].velocity[1] += gravity;
+        ball[n].velocity[1] -= gravity;
 
-        # Insert Velocity Clamping Here 
-
+        speed = math.sqrt(ball[n].velocity[0]**2 + ball[n].velocity[1]**2)
+        if speed > max_velocity:
+            scale = max_velocity / speed
+            ball[n].velocity[0] *= scale
+            ball[n].velocity[1] *= scale
 
         ball[n].pos[0] += ball[n].velocity[0];
         ball[n].pos[1] += ball[n].velocity[1];
+
+
+
+# Goal Collisions
+def goal_side_collisions():
+    for n in range(len(ball)):
+        if not ball[n].active:
+            continue
+        if ball[n].pos[1] > goal_height:
+            continue  # Only check when inside the goal zone
+
+        for i in range(1, goal_count):  # skip 0 to avoid left wall
+            divider_x = i * goal_width
+            dx = ball[n].pos[0] - divider_x
+            if abs(dx) < ball_radius:
+                # Collided with vertical divider
+                if dx < 0:
+                    ball[n].pos[0] = divider_x - ball_radius - 0.01
+                else:
+                    ball[n].pos[0] = divider_x + ball_radius + 0.01
+
+                ball[n].velocity[0] *= -1
+                ball[n].velocity[0] *= bounce_damping
+                ball[n].velocity[1] *= bounce_damping
+
 
 
 
@@ -196,10 +220,6 @@ def sim_to_window():
 
 
 
-# Per-Ball Simulation Calculation
-def sim_operations():
-    initialize_pins()
-    initialize_balls()
 # Simulation Loop
 def simulation_loop(running):
     while running():
