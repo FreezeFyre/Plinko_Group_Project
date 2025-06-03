@@ -6,14 +6,16 @@ import time
 import threading
 
 
-aspect_ratio = [16,9];
-window_width = 1440;
+aspect_ratio = [3,4];
+window_width = 720;
 window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
 
 sim_width = 100; ## In Meters
 sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1]);
 
-pin_radius = 1; ## Meters
+radius = 1.5
+
+pin_radius = radius; ## Meters
 
 max_velocity = 300.0;
 
@@ -23,25 +25,33 @@ dt = 1/sample_rate
 gravity = 2 * dt; ## In Meters
 air_damping = .999 ** dt;
 
-ball_radius = 1; ## In Meters
-bounce_damping = .9; # Range 0 to 1
+ball_radius = radius; ## In Meters
+bounce_damping = .8; # Range 0 to 1
 
 max_active_balls = 128;
 
 goal_count = 10
+
+if goal_count % 2 == 0:
+    goal_count += 1
+
 goal_width = sim_width/goal_count
 divider_color = (255, 255, 255)
 divider_width = 4 # Pixel
-goal_height = (sim_height/100) * 15 # Percent of Screen Height
+goal_height = (sim_height/100) * 5 # Percent of Screen Height
 
 
 rows = 9
-per_row = 16
+per_row = 8
 width = sim_width
 height = sim_height * 0.7
 spacing = width / per_row
 y_offset = sim_height * 0.2
 
+score = 0;
+
+min_score = 10; # min score to get from goal
+# scale by 10 to power of 1 + i/10
 
 
 # Helper to count currently active balls
@@ -127,6 +137,13 @@ def pin_collisions():
 
 
 
+# Ball Collisions
+def ball_collisions():
+    for n in range(len(ball)):
+        if not ball[n].active:
+            continue
+
+
 # Detect and Calculate Balls Colliding with the Floor and Ceiling
 def floor_ceil_collision(floor_height,ceil_height):
     for n in range(len(ball)):
@@ -134,6 +151,9 @@ def floor_ceil_collision(floor_height,ceil_height):
             continue
         if (ball[n].pos[1] < floor_height):
             ball[n].active = False
+
+
+        # Ian Score Position Detection
 
 
         elif (ball[n].pos[1] > ceil_height):
