@@ -20,19 +20,34 @@ max_velocity = 300.0;
 sample_rate = 120; ## In Herz
 
 dt = 1/sample_rate
-gravity = 5 * dt; ## In Meters
+gravity = 2 * dt; ## In Meters
 air_damping = .999 ** dt;
 
 ball_radius = 1; ## In Meters
 bounce_damping = .9; # Range 0 to 1
 
-
+max_active_balls = 128;
 
 goal_count = 10
 goal_width = sim_width/goal_count
 divider_color = (255, 255, 255)
 divider_width = 2 # Pixel
 goal_height = (sim_height/100) * 15 # Percent of Screen Height
+
+
+rows = 9
+per_row = 16
+width = sim_width
+height = sim_height * 0.7
+spacing = width / per_row
+y_offset = sim_height * 0.2
+
+
+
+# Helper to count currently active balls
+def count_active_balls():
+    return sum(1 for b in ball if b.active)
+
 
 
 # Define Ball Parameters
@@ -59,16 +74,21 @@ def initialize_balls():
     ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],False))
 
 
+
 # Pin Creation Logic Goes Here
 # Initialize Pins
 def initialize_pins():
-    pin.append(PinParameters([20 , 70],[0.0,0.0]));
-    pin.append(PinParameters([40 , 60],[0.0,0.0]));
-    pin.append(PinParameters([60 , 50],[0.0,0.0]));
-    pin.append(PinParameters([80 , 40],[0.0,0.0]));
-    pin.append(PinParameters([30 , 30],[0.0,0.0]));
-    pin.append(PinParameters([50 , 20],[0.0,0.0]));
-    pin.append(PinParameters([70 , 10],[0.0,0.0]));
+    for row in range(rows):
+        if row % 2 == 0:
+            for i in range(per_row + 1):
+                x = spacing * i
+                y = (height / rows) * row + y_offset
+                pin.append(PinParameters([x , y],[0.0,0.0]));
+        else:
+            for i in range(per_row):
+                x = spacing * (i + 1) - (spacing / 2)
+                y = (height / rows) * row + y_offset
+                pin.append(PinParameters([x , y],[0.0,0.0]));
 
 
 
@@ -234,13 +254,16 @@ def display_loop(running):
                 running_state["value"] = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                mouse_x, mouse_y = pygame.mouse.get_pos()
-                sim_x = (mouse_x / window_width) * sim_width
-                sim_y = ((window_height - mouse_y) / window_height) * sim_height
-                new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True)
-                new_ball.window_pos[0] = (sim_x / sim_width) * window_width
-                new_ball.window_pos[1] = window_height - ((sim_y / sim_height) * window_height)
-                ball.append(new_ball)
+                # Only spawn a new ball if we haven't reached the max active amount
+                if count_active_balls() < max_active_balls:
+                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                    sim_x = (mouse_x / window_width) * sim_width
+                    sim_y = ((window_height - mouse_y) / window_height) * sim_height
+                    new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True)
+                    new_ball.window_pos[0] = (sim_x / sim_width) * window_width
+                    new_ball.window_pos[1] = window_height - ((sim_y / sim_height) * window_height)
+                    ball.append(new_ball)
+
 
         for p in pin:
             pygame.draw.circle(screen, (255, 255, 255), (int(p.window_pos[0]), int(p.window_pos[1])), int(pin_radius * window_width / sim_width))
