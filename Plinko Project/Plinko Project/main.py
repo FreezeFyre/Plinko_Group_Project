@@ -1,6 +1,6 @@
 import math
 from dataclasses import dataclass
-from typing import List
+from typing import List, Self
 import pygame
 import time
 import threading
@@ -51,7 +51,7 @@ y_offset = sim_height * 0.2
 score = 0
 
 min_score = 10 # min score to get from goal
-# scale by 10 to power of 1 + i/10
+# scale by 10 to power of 1 + i/5
 
 
 # Helper to count currently active balls
@@ -142,6 +142,29 @@ def ball_collisions():
     for n in range(len(ball)):
         if not ball[n].active:
             continue
+        for i in range(len(ball)):
+            if i == n:
+                continue
+            d = math.sqrt((ball[n].pos[0] - ball[i].pos[0])**2 + (ball[n].pos[1] - ball[i].pos[1])**2)
+            if d == 0:
+                continue
+
+            if d < (ball_radius * 2):
+                x_direction = ball[n].pos[0] - ball[i].pos[0]
+                y_direction = ball[n].pos[1] - ball[i].pos[1]
+
+                normal_x = x_direction / d
+                normal_y = y_direction / d
+                dot = ball[n].velocity[0]*(normal_x) + ball[n].velocity[1]*(normal_y)
+
+                ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x
+                ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y
+
+                ball[n].pos[0] = ball[i].pos[0] + normal_x * ((ball_radius * 2) + 0.0000000000000000001)
+                ball[n].pos[1] = ball[i].pos[1] + normal_y * ((ball_radius * 2) + 0.0000000000000000001)
+
+                ball[n].velocity[0] *= bounce_damping
+                ball[n].velocity[1] *= bounce_damping
 
 
 # Detect and Calculate Balls Colliding with the Floor and Ceiling
@@ -250,6 +273,7 @@ def simulation_loop(running):
 
         global_simulations()
         pin_collisions()
+        ball_collisions()
         floor_ceil_collision(0,sim_height)
         wall_collisions(0,sim_width)
         goal_side_collisions()
