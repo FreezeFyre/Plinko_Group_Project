@@ -6,29 +6,29 @@ import time
 import threading
 
 
-aspect_ratio = [3,4];
-window_width = 720;
-window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1]);
+aspect_ratio = [3,4]
+window_width = 720
+window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1])
 
-sim_width = 100; ## In Meters
-sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1]);
+sim_width = 100 # In Meters
+sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1])
 
 radius = 1.5
 
-pin_radius = radius; ## Meters
+pin_radius = radius # Meters
 
-max_velocity = 300.0;
+max_velocity = 300.0
 
-sample_rate = 120; ## In Herz
+sample_rate = 120 # In Herz
 
 dt = 1/sample_rate
-gravity = 2 * dt; ## In Meters
-air_damping = .999 ** dt;
+gravity = 2 * dt # In Meters
+air_damping = .999 ** dt
 
-ball_radius = radius; ## In Meters
-bounce_damping = .8; # Range 0 to 1
+ball_radius = radius # In Meters
+bounce_damping = .8 # Range 0 to 1
 
-max_active_balls = 128;
+max_active_balls = 128
 
 goal_count = 10
 
@@ -48,9 +48,9 @@ height = sim_height * 0.7
 spacing = width / per_row
 y_offset = sim_height * 0.2
 
-score = 0;
+score = 0
 
-min_score = 10; # min score to get from goal
+min_score = 10 # min score to get from goal
 # scale by 10 to power of 1 + i/10
 
 
@@ -66,7 +66,7 @@ class BallParameters:
     pos: List[float]
     velocity: List[float]
     window_pos: List[float]
-    active: bool ## 0 is inactive 1 is active
+    active: bool # 0 is inactive 1 is active
 ball: List[BallParameters] = []
 
 
@@ -93,12 +93,12 @@ def initialize_pins():
             for i in range(per_row + 1):
                 x = spacing * i
                 y = (height / rows) * row + y_offset
-                pin.append(PinParameters([x , y],[0.0,0.0]));
+                pin.append(PinParameters([x , y],[0.0,0.0]))
         else:
             for i in range(per_row):
                 x = spacing * (i + 1) - (spacing / 2)
                 y = (height / rows) * row + y_offset
-                pin.append(PinParameters([x , y],[0.0,0.0]));
+                pin.append(PinParameters([x , y],[0.0,0.0]))
 
 
 
@@ -124,16 +124,16 @@ def pin_collisions():
 
                 normal_x = x_direction / d
                 normal_y = y_direction / d
-                dot = ball[n].velocity[0]*(normal_x) + ball[n].velocity[1]*(normal_y);
+                dot = ball[n].velocity[0]*(normal_x) + ball[n].velocity[1]*(normal_y)
 
-                ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x;
-                ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y;
+                ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x
+                ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y
 
-                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.0000000000000000001);
-                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.0000000000000000001);
+                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.0000000000000000001)
+                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.0000000000000000001)
 
-                ball[n].velocity[0] *= bounce_damping;
-                ball[n].velocity[1] *= bounce_damping;
+                ball[n].velocity[0] *= bounce_damping
+                ball[n].velocity[1] *= bounce_damping
 
 
 
@@ -157,10 +157,10 @@ def floor_ceil_collision(floor_height,ceil_height):
 
 
         elif (ball[n].pos[1] > ceil_height):
-            ball[n].velocity[1] *= -1;
-            ball[n].pos[1] = ceil_height - ball_radius - 0.01;
-            ball[n].velocity[0] *= bounce_damping;
-            ball[n].velocity[1] *= bounce_damping;
+            ball[n].velocity[1] *= -1
+            ball[n].pos[1] = ceil_height - ball_radius - 0.01
+            ball[n].velocity[0] *= bounce_damping
+            ball[n].velocity[1] *= bounce_damping
 
 
 
@@ -170,16 +170,16 @@ def wall_collisions(left,right):
         if not ball[n].active:
             continue
         if (ball[n].pos[0] < left):
-            ball[n].velocity[0] *= -1;
-            ball[n].pos[0] = left + ball_radius + 0.01;
-            ball[n].velocity[0] *= bounce_damping;
-            ball[n].velocity[1] *= bounce_damping;
+            ball[n].velocity[0] *= -1
+            ball[n].pos[0] = left + ball_radius + 0.01
+            ball[n].velocity[0] *= bounce_damping
+            ball[n].velocity[1] *= bounce_damping
 
         elif (ball[n].pos[0] > right):
-            ball[n].velocity[0] *= -1;
-            ball[n].pos[0] = right - ball_radius - 0.01;
-            ball[n].velocity[0] *= bounce_damping;
-            ball[n].velocity[1] *= bounce_damping;
+            ball[n].velocity[0] *= -1
+            ball[n].pos[0] = right - ball_radius - 0.01
+            ball[n].velocity[0] *= bounce_damping
+            ball[n].velocity[1] *= bounce_damping
 
 
 
@@ -188,10 +188,10 @@ def global_simulations():
     for n in range(len(ball)):
         if not ball[n].active:
             continue
-        ball[n].velocity[0] *= air_damping;
-        ball[n].velocity[1] *= air_damping;
+        ball[n].velocity[0] *= air_damping
+        ball[n].velocity[1] *= air_damping
 
-        ball[n].velocity[1] -= gravity;
+        ball[n].velocity[1] -= gravity
 
         speed = math.sqrt(ball[n].velocity[0]**2 + ball[n].velocity[1]**2)
         if speed > max_velocity:
@@ -199,8 +199,8 @@ def global_simulations():
             ball[n].velocity[0] *= scale
             ball[n].velocity[1] *= scale
 
-        ball[n].pos[0] += ball[n].velocity[0];
-        ball[n].pos[1] += ball[n].velocity[1];
+        ball[n].pos[0] += ball[n].velocity[0]
+        ball[n].pos[1] += ball[n].velocity[1]
 
 
 
@@ -300,7 +300,7 @@ def display_loop(running):
         clock.tick(60)
 
 
-## ____ Main Processing ____ ##
+# ____ Main Processing ____ #
 
 initialize_pins()
 initialize_balls()
