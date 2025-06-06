@@ -19,16 +19,18 @@ pin_radius = radius # Meters
 
 max_velocity = 300.0
 
-sample_rate = 120 # In Herz
+sample_rate = 1024 # In Herz
+
+timeout = sample_rate * 30 # in seconds
 
 dt = 1/sample_rate
-gravity = 2 * dt # In Meters
-air_damping = .999 ** dt
+gravity = 25*  9.8 # In Meters
+air_damping = .9999 ** dt
 
 ball_radius = radius # In Meters
-bounce_damping = .8 # Range 0 to 1
+bounce_damping = .9 # Range 0 to 1
 
-max_active_balls = 128
+max_active_balls = 16
 
 goal_count = 10
 
@@ -40,13 +42,10 @@ divider_color = (255, 255, 255)
 divider_width = 4 # Pixel
 goal_height = (sim_height/100) * 5 # Percent of Screen Height
 
+epsilon = 1 / 10**10
 
 rows = 9
-per_row = 8
-width = sim_width
-height = sim_height * 0.7
-spacing = width / per_row
-y_offset = sim_height * 0.2
+y_start = sim_height * 0.10
 
 score = 0
 
@@ -67,6 +66,7 @@ class BallParameters:
     velocity: List[float]
     window_pos: List[float]
     active: bool # 0 is inactive 1 is active
+    time: int
 ball: List[BallParameters] = []
 
 
@@ -81,25 +81,54 @@ pin: List[PinParameters] = []
 # Ball Creation Logic Goes In Here
 # Initialize Balls
 def initialize_balls():
-    ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],False))
+    ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],False,0))
 
 
 
 # Pin Creation Logic Goes Here
 # Initialize Pins
 def initialize_pins():
-    for row in range(rows):
-        if row % 2 == 0:
-            for i in range(per_row + 1):
-                x = spacing * i
-                y = (height / rows) * row + y_offset
-                pin.append(PinParameters([x , y],[0.0,0.0]))
-        else:
-            for i in range(per_row):
-                x = spacing * (i + 1) - (spacing / 2)
-                y = (height / rows) * row + y_offset
-                pin.append(PinParameters([x , y],[0.0,0.0]))
+    global pin
 
+    # Safe spacing to force collisions
+    S = 3 * ball_radius + 3 * pin_radius - epsilon
+    V = S * math.sin(math.radians(60))  # vertical spacing
+
+    # Top row: centered, odd number of pins
+    max_pins = int(sim_width // S)
+    if max_pins % 2 == 0:
+        max_pins -= 1
+    half = max_pins // 2
+
+    for row in range(rows):
+        y = y_start + row * V
+        stagger = (row % 2 == 1)
+
+        if stagger:
+            # Add 1 extra pin on each side
+            i_range = range(-half - 1, half + 2)
+        else:
+            i_range = range(-half, half + 1)
+
+        for i in i_range:
+            x = (sim_width / 2) + i * S
+            if stagger:
+                x += S / 2
+
+            if 0 <= x <= sim_width:
+                pin.append(PinParameters([x, y], [0.0, 0.0]))
+
+
+
+def ball_timeout():
+    for n in range(len(ball)):
+        if not ball[n].active:
+            continue
+
+        ball[n].time += 1
+
+        if ball[n].time >= timeout:
+            ball[n].active = False
 
 
 # Convert simulation pos to window pos and add it to each pin
@@ -129,8 +158,8 @@ def pin_collisions():
                 ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x
                 ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y
 
-                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + 0.0000000000000000001)
-                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + 0.0000000000000000001)
+                ball[n].pos[0] = pin[i].pos[0] + normal_x * (pin_radius + ball_radius + epsilon)
+                ball[n].pos[1] = pin[i].pos[1] + normal_y * (pin_radius + ball_radius + epsilon)
 
                 ball[n].velocity[0] *= bounce_damping
                 ball[n].velocity[1] *= bounce_damping
@@ -160,8 +189,8 @@ def ball_collisions():
                 ball[n].velocity[0] = ball[n].velocity[0] - 2 * dot * normal_x
                 ball[n].velocity[1] = ball[n].velocity[1] - 2 * dot * normal_y
 
-                ball[n].pos[0] = ball[i].pos[0] + normal_x * ((ball_radius * 2) + 0.0000000000000000001)
-                ball[n].pos[1] = ball[i].pos[1] + normal_y * ((ball_radius * 2) + 0.0000000000000000001)
+                ball[n].pos[0] = ball[i].pos[0] + normal_x * ((ball_radius * 2) + epsilon)
+                ball[n].pos[1] = ball[i].pos[1] + normal_y * ((ball_radius * 2) + epsilon)
 
                 ball[n].velocity[0] *= bounce_damping
                 ball[n].velocity[1] *= bounce_damping
@@ -172,8 +201,9 @@ def floor_ceil_collision(floor_height,ceil_height):
     for n in range(len(ball)):
         if not ball[n].active:
             continue
-        if (ball[n].pos[1] < floor_height):
+        if ball[n].pos[1] < floor_height + ball_radius:
             ball[n].active = False
+
 
 
         # Ian Score Position Detection
@@ -214,7 +244,7 @@ def global_simulations():
         ball[n].velocity[0] *= air_damping
         ball[n].velocity[1] *= air_damping
 
-        ball[n].velocity[1] -= gravity
+        ball[n].velocity[1] -= gravity * dt
 
         speed = math.sqrt(ball[n].velocity[0]**2 + ball[n].velocity[1]**2)
         if speed > max_velocity:
@@ -222,8 +252,9 @@ def global_simulations():
             ball[n].velocity[0] *= scale
             ball[n].velocity[1] *= scale
 
-        ball[n].pos[0] += ball[n].velocity[0]
-        ball[n].pos[1] += ball[n].velocity[1]
+        ball[n].pos[0] += ball[n].velocity[0] * dt
+        ball[n].pos[1] += ball[n].velocity[1] * dt
+
 
 
 
@@ -271,6 +302,7 @@ def simulation_loop(running):
         sim_to_window()
         pin_window_pos()
 
+        ball_timeout()
         global_simulations()
         pin_collisions()
         ball_collisions()
@@ -303,7 +335,7 @@ def display_loop(running):
                     mouse_x, mouse_y = pygame.mouse.get_pos()
                     sim_x = (mouse_x / window_width) * sim_width
                     sim_y = ((window_height - mouse_y) / window_height) * sim_height
-                    new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True)
+                    new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True, 0)
                     new_ball.window_pos[0] = (sim_x / sim_width) * window_width
                     new_ball.window_pos[1] = window_height - ((sim_y / sim_height) * window_height)
                     ball.append(new_ball)
