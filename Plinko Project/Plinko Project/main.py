@@ -19,7 +19,7 @@ pin_radius = radius # Meters
 
 max_velocity = 300.0
 
-sample_rate = 1024 # In Herz
+sample_rate = 128 # In Herz
 
 timeout = sample_rate * 30 # in seconds
 
@@ -51,6 +51,8 @@ score = 0
 
 min_score = 10 # min score to get from goal
 # scale by 10 to power of 1 + i/5
+
+debug_mode = {"value": False}
 
 
 # Helper to count currently active balls
@@ -330,15 +332,32 @@ def display_loop(running):
                 running_state["value"] = False
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
-                # Only spawn a new ball if we haven't reached the max active amount
-                if count_active_balls() < max_active_balls:
-                    mouse_x, mouse_y = pygame.mouse.get_pos()
+                mouse_x, mouse_y = event.pos
+
+				# Check if click is in top-right "Debug" button
+                button_width = 60
+                button_height = 25
+                if (window_width - button_width - 10 <= mouse_x <= window_width - 10 and
+				    10 <= mouse_y <= 10 + button_height):
+                    debug_mode["value"] = not debug_mode["value"]
+
+				# Spawn new ball if allowed
+                elif count_active_balls() < max_active_balls:
                     sim_x = (mouse_x / window_width) * sim_width
                     sim_y = ((window_height - mouse_y) / window_height) * sim_height
-                    new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True, 0)
-                    new_ball.window_pos[0] = (sim_x / sim_width) * window_width
-                    new_ball.window_pos[1] = window_height - ((sim_y / sim_height) * window_height)
-                    ball.append(new_ball)
+                    for b in ball:
+                        if not b.active:
+                            b.pos = [sim_x, sim_height]
+                            b.velocity = [0.0, 0.0]
+                            b.window_pos = [0.0, 0.0]
+                            b.active = True
+                            b.time = 0
+                            break
+                    else:
+                        if len(ball) < max_active_balls:
+                            new_ball = BallParameters([sim_x, sim_height], [0.0, 0.0], [0.0, 0.0], True, 0)
+                            ball.append(new_ball)
+
 
 
         for p in pin:
@@ -347,10 +366,50 @@ def display_loop(running):
             if not b.active:
                 continue
             pygame.draw.circle(screen, (255, 0, 0), (int(b.window_pos[0]), int(b.window_pos[1])), int(ball_radius * window_width / sim_width))
+        
 
         for i in range(1, goal_count):
             divider_x = (i * goal_width / sim_width) * window_width
             pygame.draw.line(screen, divider_color, (divider_x, window_height), (divider_x, window_height - (goal_height / sim_height) * window_height), divider_width)
+
+			# --- Draw Debug Toggle Button ---
+        button_width = 60
+        button_height = 25
+        button_rect = pygame.Rect(window_width - button_width - 10, 10, button_width, button_height)
+        pygame.draw.rect(screen, (50, 50, 50), button_rect)
+        pygame.draw.rect(screen, (200, 200, 200), button_rect, 2)
+
+        button_font = pygame.font.SysFont(None, 20)
+        label = "Debug" if not debug_mode["value"] else "Hide"
+        label_surface = button_font.render(label, True, (255, 255, 255))
+        label_rect = label_surface.get_rect(center=button_rect.center)
+        screen.blit(label_surface, label_rect)
+
+			# --- Display debug info if enabled ---
+        if debug_mode["value"]:
+            font = pygame.font.SysFont(None, 18)
+            margin = 10
+            line_height = 18
+            lines = []
+
+            for i, b in enumerate(ball):
+                if b.active:
+                    pos_text = f"{i}: ({b.pos[0]:.5f}, {b.pos[1]:.5f})"
+                    lines.append(pos_text)
+
+                    velocity_scale = 0.1  # tuning value for how long lines appear
+                    vx = b.velocity[0] * (window_width / sim_width) * velocity_scale
+                    vy = -b.velocity[1] * (window_height / sim_height) * velocity_scale  # flip Y for screen space
+
+                    start_pos = (int(b.window_pos[0]), int(b.window_pos[1]))
+                    end_pos = (int(b.window_pos[0] + vx), int(b.window_pos[1] + vy))
+                    pygame.draw.line(screen, (0, 255, 0), start_pos, end_pos, 2)
+
+            for i, line in enumerate(lines):
+                text_surface = font.render(line, True, (200, 200, 200))
+                text_rect = text_surface.get_rect(topright=(window_width - margin, margin + (i + 3) * line_height))
+                screen.blit(text_surface, text_rect)
+
 
         pygame.display.flip()
         clock.tick(60)
