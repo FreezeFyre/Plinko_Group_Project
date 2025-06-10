@@ -38,12 +38,12 @@ if goal_count % 2 == 0:
     goal_count += 1
 
 goal_width = sim_width/goal_count
-divider_color = (255, 255, 255)
+divider_color = (94, 94, 96)
 divider_width = 4 # Pixel
 goal_height = (sim_height/100) * 5 # Percent of Screen Height
 
 # Shadow settings
-shadow_offset = 3  # pixel offset for drop shadows
+shadow_offset = 4  # pixel offset for drop shadows
 shadow_color = (0, 0, 0, 120)  # semi-transparent black
 
 epsilon = 1 / 10**10
@@ -329,7 +329,7 @@ def display_loop(running):
     clock = pygame.time.Clock()
 
     while running():
-        screen.fill((0, 0, 0))
+        screen.fill((31, 31, 36))
         shadow_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 
         for event in pygame.event.get():
@@ -371,7 +371,7 @@ def display_loop(running):
                 shadow_surface,
                 shadow_color,
                 (
-                    int(p.window_pos[0]) + shadow_offset,
+                    int(p.window_pos[0]),
                     int(p.window_pos[1]) + shadow_offset,
                 ),
                 int(pin_radius * window_width / sim_width),
@@ -383,7 +383,7 @@ def display_loop(running):
                 shadow_surface,
                 shadow_color,
                 (
-                    int(b.window_pos[0]) + shadow_offset,
+                    int(b.window_pos[0]),
                     int(b.window_pos[1]) + shadow_offset,
                 ),
                 int(ball_radius * window_width / sim_width),
@@ -395,7 +395,7 @@ def display_loop(running):
         for p in pin:
             pygame.draw.circle(
                 screen,
-                (255, 255, 255),
+                (94, 94, 96),
                 (int(p.window_pos[0]), int(p.window_pos[1])),
                 int(pin_radius * window_width / sim_width),
             )
@@ -404,7 +404,7 @@ def display_loop(running):
                 continue
             pygame.draw.circle(
                 screen,
-                (255, 0, 0),
+                (196, 232, 232),
                 (int(b.window_pos[0]), int(b.window_pos[1])),
                 int(ball_radius * window_width / sim_width),
             )
