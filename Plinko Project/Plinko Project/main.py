@@ -2,9 +2,12 @@ import math
 from dataclasses import dataclass
 from typing import List, Self
 import pygame
+pygame.init()
 import time
 import threading
 
+# score font feel free to change
+score_font = pygame.font.SysFont("Arial", 30)
 
 aspect_ratio = [3,4]
 window_width = 720
@@ -210,10 +213,18 @@ def floor_ceil_collision(floor_height,ceil_height):
         if ball[n].pos[1] < floor_height + ball_radius:
             ball[n].active = False
 
+            # --- scoring logic ---
+            global score
 
+            goal_index = int(ball[n].pos[0] // goal_width)
+            goal_index = max(0, min(goal_count - 1, goal_index))  # clamp
 
-        # Ian Score Position Detection
+            center_index = goal_count // 2
+            distance_from_center = abs(goal_index - center_index)
 
+            points = round(1000 / (10 ** (distance_from_center / 5)))
+
+            score += points
 
         elif (ball[n].pos[1] > ceil_height):
             ball[n].velocity[1] *= -1
@@ -413,6 +424,14 @@ def display_loop(running):
         for i in range(1, goal_count):
             divider_x = (i * goal_width / sim_width) * window_width
             pygame.draw.line(screen, divider_color, (divider_x, window_height), (divider_x, window_height - (goal_height / sim_height) * window_height), divider_width)
+
+        # --- score display ---
+        # fancy lil shadow
+        shadow = score_font.render(f"Score: {score}", True, (159, 159, 161))
+        screen.blit(shadow, (12, 12))  
+
+        score_text = score_font.render(f"Score: {score}", True, (152, 195, 245))  # text color, i cant find a good color so idk change it if u want
+        screen.blit(score_text, (10, 10))  # position on screen
 
 			# --- Draw Debug Toggle Button ---
         button_width = 60
