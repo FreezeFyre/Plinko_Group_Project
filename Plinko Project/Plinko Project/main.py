@@ -42,6 +42,10 @@ divider_color = (255, 255, 255)
 divider_width = 4 # Pixel
 goal_height = (sim_height/100) * 5 # Percent of Screen Height
 
+# Shadow settings
+shadow_offset = 3  # pixel offset for drop shadows
+shadow_color = (0, 0, 0, 120)  # semi-transparent black
+
 epsilon = 1 / 10**10
 
 rows = 9
@@ -326,6 +330,7 @@ def display_loop(running):
 
     while running():
         screen.fill((0, 0, 0))
+        shadow_surface = pygame.Surface(screen.get_size(), pygame.SRCALPHA)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -360,12 +365,49 @@ def display_loop(running):
 
 
 
+        # Draw shadows first
         for p in pin:
-            pygame.draw.circle(screen, (255, 255, 255), (int(p.window_pos[0]), int(p.window_pos[1])), int(pin_radius * window_width / sim_width))
+            pygame.draw.circle(
+                shadow_surface,
+                shadow_color,
+                (
+                    int(p.window_pos[0]) + shadow_offset,
+                    int(p.window_pos[1]) + shadow_offset,
+                ),
+                int(pin_radius * window_width / sim_width),
+            )
         for b in ball:
             if not b.active:
                 continue
-            pygame.draw.circle(screen, (255, 0, 0), (int(b.window_pos[0]), int(b.window_pos[1])), int(ball_radius * window_width / sim_width))
+            pygame.draw.circle(
+                shadow_surface,
+                shadow_color,
+                (
+                    int(b.window_pos[0]) + shadow_offset,
+                    int(b.window_pos[1]) + shadow_offset,
+                ),
+                int(ball_radius * window_width / sim_width),
+            )
+
+        screen.blit(shadow_surface, (0, 0))
+
+        # Draw actual objects over shadows
+        for p in pin:
+            pygame.draw.circle(
+                screen,
+                (255, 255, 255),
+                (int(p.window_pos[0]), int(p.window_pos[1])),
+                int(pin_radius * window_width / sim_width),
+            )
+        for b in ball:
+            if not b.active:
+                continue
+            pygame.draw.circle(
+                screen,
+                (255, 0, 0),
+                (int(b.window_pos[0]), int(b.window_pos[1])),
+                int(ball_radius * window_width / sim_width),
+            )
         
 
         for i in range(1, goal_count):
