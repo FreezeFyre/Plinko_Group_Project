@@ -1,20 +1,38 @@
+"""Plinko simulation built with pygame.
+
+This module contains a very small physics sandbox that mimics a Plinko
+board.  Balls fall through a grid of pins and land in goal slots at the
+bottom of the screen.  The simulation runs on a background thread while a
+display loop renders the state to a resizable window.
+"""
+
 import math
 from dataclasses import dataclass
 from typing import List, Self
 import pygame
+
 pygame.init()
 import time
 import threading
 
-# score font feel free to change
+# Font used for the on-screen score display
 score_font = pygame.font.SysFont("Arial", 30)
 
-aspect_ratio = [3,4]
-window_width = 720
-window_height = (window_width/aspect_ratio[0])*(aspect_ratio[1])
+# -------------------------------------------------------------
+# Window and simulation dimensions
+# -------------------------------------------------------------
+# Aspect ratio of the game window (width : height).  We use a tall 9:16
+# ratio so the playing field is vertical.
+aspect_ratio = [9, 16]
 
-sim_width = 100 # In Meters
-sim_height = (sim_width/aspect_ratio[0])*(aspect_ratio[1])
+# Initial window dimensions.  The height is set to the full vertical
+# resolution of the user's monitor (1050px) and the width is derived from
+# the aspect ratio.
+window_height = 1050
+window_width = (window_height * aspect_ratio[0]) / aspect_ratio[1]
+
+sim_width = 100  # Simulation width in meters
+sim_height = (sim_width / aspect_ratio[0]) * aspect_ratio[1]
 
 radius = 1.5
 
@@ -56,14 +74,15 @@ y_start = sim_height * 0.10
 
 score = 0
 
-min_score = 10 # min score to get from goal
-# scale by 10 to power of 1 + i/5
+min_score = 10  # Minimum score attainable from a goal
+# Scale by 10 to the power of 1 + i/5 for scoring falloff
 
 debug_mode = {"value": False}
 
 
 # Helper to count currently active balls
-def count_active_balls():
+def count_active_balls() -> int:
+    """Return the number of balls currently in play."""
     return sum(1 for b in ball if b.active)
 
 
@@ -71,32 +90,38 @@ def count_active_balls():
 # Define Ball Parameters
 @dataclass
 class BallParameters:
+    """Container for all mutable ball state used by the simulation."""
+
     pos: List[float]
     velocity: List[float]
     window_pos: List[float]
-    active: bool # 0 is inactive 1 is active
-    time: int
+    active: bool  # Whether the ball is currently active
+    time: int  # Number of simulation steps the ball has existed
 ball: List[BallParameters] = []
 
 
 # Define Pin Parameters
 @dataclass
 class PinParameters:
+    """Simple container describing the location of a single pin."""
+
     pos: List[float]
     window_pos: List[float]
 pin: List[PinParameters] = []
 
 
 # Ball Creation Logic Goes In Here
-# Initialize Balls
-def initialize_balls():
-    ball.append(BallParameters([0.0 , 0.0],[0.0 , 0.0],[0.0,0.0],False,0))
+def initialize_balls() -> None:
+    """Create the initial inactive ball used as a template."""
+
+    ball.append(BallParameters([0.0, 0.0], [0.0, 0.0], [0.0, 0.0], False, 0))
 
 
 
 # Pin Creation Logic Goes Here
-# Initialize Pins
-def initialize_pins():
+def initialize_pins() -> None:
+    """Populate the board with a triangular grid of pins."""
+
     global pin
 
     # Safe spacing to force collisions
@@ -129,7 +154,9 @@ def initialize_pins():
 
 
 
-def ball_timeout():
+def ball_timeout() -> None:
+    """Deactivate balls that have existed longer than the timeout."""
+
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -141,7 +168,9 @@ def ball_timeout():
 
 
 # Convert simulation pos to window pos and add it to each pin
-def pin_window_pos():
+def pin_window_pos() -> None:
+    """Update the cached screen positions for each pin."""
+
     for n in range(len(pin)):
         pin[n].window_pos[0] = (pin[n].pos[0] / sim_width) * window_width
         pin[n].window_pos[1] = window_height - ((pin[n].pos[1] / sim_height) * window_height)
@@ -149,7 +178,8 @@ def pin_window_pos():
 
 
 # Detect and Calculate Balls Colliding with Pins
-def pin_collisions():
+def pin_collisions() -> None:
+    """Handle collisions between balls and pins."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -176,7 +206,8 @@ def pin_collisions():
 
 
 # Ball Collisions
-def ball_collisions():
+def ball_collisions() -> None:
+    """Handle collisions between balls themselves."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -206,7 +237,8 @@ def ball_collisions():
 
 
 # Detect and Calculate Balls Colliding with the Floor and Ceiling
-def floor_ceil_collision(floor_height,ceil_height):
+def floor_ceil_collision(floor_height: float, ceil_height: float) -> None:
+    """Handle collisions with the floor and ceiling and update score."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -235,7 +267,8 @@ def floor_ceil_collision(floor_height,ceil_height):
 
 
 # Detect and Calculate Collisions with walls
-def wall_collisions(left,right):
+def wall_collisions(left: float, right: float) -> None:
+    """Handle collisions of balls with the side walls."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -254,7 +287,8 @@ def wall_collisions(left,right):
 
 
 # Apply Global Simulation Calculations
-def global_simulations():
+def global_simulations() -> None:
+    """Apply gravity, damping and integration for all active balls."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -276,7 +310,8 @@ def global_simulations():
 
 
 # Goal Collisions
-def goal_side_collisions():
+def goal_side_collisions() -> None:
+    """Handle collisions with goal dividers at the bottom of the board."""
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -302,7 +337,9 @@ def goal_side_collisions():
 
 
 # Updates the Screen Pos of Each Ball
-def sim_to_window():
+def sim_to_window() -> None:
+    """Convert simulation coordinates to window coordinates."""
+
     for n in range(len(ball)):
         if not ball[n].active:
             continue
@@ -312,7 +349,8 @@ def sim_to_window():
 
 
 # Simulation Loop
-def simulation_loop(running):
+def simulation_loop(running) -> None:
+    """Background thread that updates physics state."""
     while running():
         start_time = time.time()
 
@@ -334,7 +372,8 @@ def simulation_loop(running):
 
 
 # Display Loop
-def display_loop(running):
+def display_loop(running) -> None:
+    """Main thread loop responsible for rendering and user input."""
     pygame.init()
     global window_width, window_height
     screen = pygame.display.set_mode(
@@ -350,9 +389,10 @@ def display_loop(running):
             if event.type == pygame.QUIT:
                 running_state["value"] = False
             elif event.type == pygame.VIDEORESIZE:
-                # keep the aspect ratio based on the new width
-                window_width = event.w
-                window_height = (window_width / aspect_ratio[0]) * aspect_ratio[1]
+                # keep the aspect ratio based on the new height so the
+                # window remains vertical
+                window_height = event.h
+                window_width = (window_height * aspect_ratio[0]) / aspect_ratio[1]
                 screen = pygame.display.set_mode(
                     (int(window_width), int(window_height)), pygame.RESIZABLE
                 )
@@ -487,6 +527,7 @@ def display_loop(running):
 
 
 # ____ Main Processing ____ #
+# Set up the simulation state and start the worker threads.
 
 initialize_pins()
 initialize_balls()
