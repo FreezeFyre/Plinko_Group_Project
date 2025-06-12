@@ -336,7 +336,10 @@ def simulation_loop(running):
 # Display Loop
 def display_loop(running):
     pygame.init()
-    screen = pygame.display.set_mode((int(window_width), int(window_height)))
+    global window_width, window_height
+    screen = pygame.display.set_mode(
+        (int(window_width), int(window_height)), pygame.RESIZABLE
+    )
     clock = pygame.time.Clock()
 
     while running():
@@ -346,6 +349,13 @@ def display_loop(running):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running_state["value"] = False
+            elif event.type == pygame.VIDEORESIZE:
+                # keep the aspect ratio based on the new width
+                window_width = event.w
+                window_height = (window_width / aspect_ratio[0]) * aspect_ratio[1]
+                screen = pygame.display.set_mode(
+                    (int(window_width), int(window_height)), pygame.RESIZABLE
+                )
 
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 mouse_x, mouse_y = event.pos
