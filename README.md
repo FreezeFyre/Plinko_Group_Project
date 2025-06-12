@@ -27,5 +27,5 @@ cd "Plinko Project/Plinko Project"
 python main.py
 ```
 
-A window will open showing the Plinko board. Click anywhere to spawn a new ball. Close the window or quit the program to stop the simulation.
+A window will open showing the Plinko board. The window can be resized and will maintain its original 3:4 aspect ratio. Click anywhere to spawn a new ball. Close the window or quit the program to stop the simulation.
 
